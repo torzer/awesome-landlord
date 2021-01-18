@@ -59,14 +59,14 @@ class TenantManager
 
      /**
      * Check if the tenant management is enabled
-     * 
+     *
      * @return bool
      */
     public function isEnabled() : bool
     {
         return $this->enabled;
     }
-    
+
     /**
      * Add a tenant to scope by.
      *
@@ -156,6 +156,13 @@ class TenantManager
 
         $this->modelTenants($model)->each(function ($id, $tenant) use ($model) {
             $model->addGlobalScope($tenant, function (Builder $builder) use ($tenant, $id, $model) {
+                /**
+                 * In case tenant is removed after this scope is created
+                 * we don't want to scope by it
+                 */
+                if (!$this->tenants->contains($tenant)) {
+                    return;
+                }
                 $builder->where($model->getQualifiedTenant($tenant), '=', $this->getTenantId($tenant));
             });
         });
@@ -174,6 +181,14 @@ class TenantManager
                 }
 
                 $model->addGlobalScope($tenant, function (Builder $builder) use ($tenant, $id, $model) {
+                    /**
+                     * In case tenant is removed after this scope is created
+                     * we don't want to scope by it
+                     */
+                    if (!$this->tenants->contains($tenant)) {
+                        return;
+                    }
+
                     $builder->where($model->getQualifiedTenant($tenant), '=', $this->getTenantId($tenant));
                 });
             });
